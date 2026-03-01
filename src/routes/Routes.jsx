@@ -1,6 +1,12 @@
 import { createBrowserRouter } from "react-router";
 import MainLayout from "../layouts/MainLayout";
 import Home from "../pages/Home";
+import Login from "../pages/Login";
+import Register from "../pages/Register";
+import PrivateRoute from "./PrivateRoute";
+
+// Dummy component for testing the private route
+const AddProduct = () => <div className="text-center text-3xl mt-10">Add Product Page (Protected)</div>;
 
 const router = createBrowserRouter([
   {
@@ -12,9 +18,23 @@ const router = createBrowserRouter([
         path: "/",
         element: <Home />,
       },
-      // Future routes:
-      // { path: "all-products", element: <AllProducts /> },
-      // { path: "login", element: <Login /> },
+      {
+        path: "login",
+        element: <Login />,
+      },
+      {
+        path: "register",
+        element: <Register />,
+      },
+      // Protected Routes
+      {
+        path: "add-product",
+        element: (
+          <PrivateRoute>
+            <AddProduct />
+          </PrivateRoute>
+        ),
+      },
     ],
   },
 ]);
