@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router';
 import { AuthContext } from '../contexts/AuthContext';
 
 const axiosSecure = axios.create({
-  baseURL: 'http://localhost:5000', // <-- Updated to standard Express port
-  withCredentials: true // <-- Add this ONLY if your backend is setting JWTs via HTTP-only cookies instead of localStorage
+  baseURL: 'https://a11-b2b-wholesale-platformt-server.vercel.app', // <-- Updated to standard Express port
+  // withCredentials: true // <-- Add this ONLY if your backend is setting JWTs via HTTP-only cookies instead of localStorage
 });
 
 const useAxiosSecure = () => {

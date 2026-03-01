@@ -1,6 +1,5 @@
 import { useContext } from "react";
 import { useForm } from "react-hook-form";
-// import Swal from "sweetalert2";
 import { AuthContext } from "../contexts/AuthContext";
 import useAxiosSecure from "../hooks/useAxiosSecure";
 import Swal from "sweetalert2";
@@ -8,49 +7,67 @@ import Swal from "sweetalert2";
 const AddProduct = () => {
   const { user } = useContext(AuthContext);
   const axiosSecure = useAxiosSecure();
-  
-  // Initialize React Hook Form
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors }
+  } = useForm();
 
   const onSubmit = async (data) => {
-    // 1. Format the data to match backend expectations
+    if (!user?.email) {
+      return Swal.fire({
+        title: "Unauthorized!",
+        text: "You must be logged in to add a product.",
+        icon: "warning"
+      });
+    }
+
+    // ✅ FINAL BACKEND MATCHED OBJECT
     const newProduct = {
       name: data.name,
       image: data.image,
       category: data.category,
       price: parseFloat(data.price),
-      Minimum_selling_quantity: parseInt(data.minQty),
+
+      // backend field names
+      minimum_selling_quantity: parseInt(data.minQty),
+      main_quantity: parseInt(data.stock) || 0,
+
       description: data.description,
-      // Attach the user who added it
-      supplier: {
-        name: user?.displayName,
-        email: user?.email,
-        photo: user?.photoURL
-      }
+
+      // required for /api/my-products
+      sellerEmail: user.email,
+
+      // optional display info
+      sellerName: user.displayName,
+      sellerPhoto: user.photoURL,
+
+      rating: 0,
+      createdAt: new Date()
     };
 
     try {
-      // 2. Send to backend via secure Axios
-      const res = await axiosSecure.post('/api/products', newProduct);
-      
+      const res = await axiosSecure.post("/api/products", newProduct);
+
       if (res.data.insertedId) {
-        // 3. Show Sweet Alert on success
         Swal.fire({
           title: "Success!",
           text: "Product added successfully to the marketplace.",
           icon: "success",
           confirmButtonText: "Cool"
         });
-        // 4. Clear the form
+
         reset();
       }
     } catch (error) {
       console.error("Error adding product:", error);
+
       Swal.fire({
         title: "Error!",
         text: "Failed to add product. Please try again.",
-        icon: "error",
-        confirmButtonText: "Close"
+        icon: "error"
       });
     }
   };
@@ -59,32 +76,55 @@ const AddProduct = () => {
     <div className="max-w-4xl mx-auto px-4 py-10">
       <div className="bg-base-100 shadow-2xl rounded-2xl p-8 border border-base-200">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-primary">Add New Product</h2>
-          <p className="text-gray-500 mt-2">List your wholesale items to the global marketplace.</p>
+          <h2 className="text-3xl font-bold text-primary">
+            Add New Product
+          </h2>
+          <p className="text-gray-500 mt-2">
+            List your wholesale items to the global marketplace.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Row 1: Product Name & Category */}
+
+          {/* Row 1 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
             <div className="form-control">
-              <label className="label"><span className="label-text font-semibold">Product Name</span></label>
-              <input 
-                type="text" 
-                placeholder="e.g., Industrial Coffee Machine" 
+              <label className="label">
+                <span className="label-text font-semibold">
+                  Product Name
+                </span>
+              </label>
+              <input
+                type="text"
                 className="input input-bordered w-full"
-                {...register("name", { required: "Product name is required" })} 
+                {...register("name", {
+                  required: "Product name is required"
+                })}
               />
-              {errors.name && <span className="text-error text-sm mt-1">{errors.name.message}</span>}
+              {errors.name && (
+                <span className="text-error text-sm mt-1">
+                  {errors.name.message}
+                </span>
+              )}
             </div>
 
             <div className="form-control">
-              <label className="label"><span className="label-text font-semibold">Category</span></label>
-              <select 
+              <label className="label">
+                <span className="label-text font-semibold">
+                  Category
+                </span>
+              </label>
+              <select
                 className="select select-bordered w-full"
                 defaultValue=""
-                {...register("category", { required: "Please select a category" })}
+                {...register("category", {
+                  required: "Please select a category"
+                })}
               >
-                <option value="" disabled>Select Category...</option>
+                <option value="" disabled>
+                  Select Category...
+                </option>
                 <option value="Electronics">Electronics</option>
                 <option value="Apparel & Fashion">Apparel & Fashion</option>
                 <option value="Home Appliances">Home Appliances</option>
@@ -92,73 +132,148 @@ const AddProduct = () => {
                 <option value="Health & Beauty">Health & Beauty</option>
                 <option value="Automotive">Automotive</option>
               </select>
-              {errors.category && <span className="text-error text-sm mt-1">{errors.category.message}</span>}
+              {errors.category && (
+                <span className="text-error text-sm mt-1">
+                  {errors.category.message}
+                </span>
+              )}
             </div>
           </div>
 
-          {/* Row 2: Price & Minimum Quantity */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Row 2 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
             <div className="form-control">
-              <label className="label"><span className="label-text font-semibold">Price per unit ($)</span></label>
-              <input 
-                type="number" 
+              <label className="label">
+                <span className="label-text font-semibold">
+                  Price per unit ($)
+                </span>
+              </label>
+              <input
+                type="number"
                 step="0.01"
-                placeholder="e.g., 250.00" 
                 className="input input-bordered w-full"
-                {...register("price", { required: "Price is required", min: 0 })} 
+                {...register("price", {
+                  required: "Price is required",
+                  min: 0
+                })}
               />
-              {errors.price && <span className="text-error text-sm mt-1">{errors.price.message}</span>}
+              {errors.price && (
+                <span className="text-error text-sm mt-1">
+                  {errors.price.message}
+                </span>
+              )}
             </div>
 
             <div className="form-control">
-              <label className="label"><span className="label-text font-semibold">Minimum Selling Quantity</span></label>
-              <input 
-                type="number" 
-                placeholder="e.g., 150" 
+              <label className="label">
+                <span className="label-text font-semibold">
+                  Minimum Selling Quantity
+                </span>
+              </label>
+              <input
+                type="number"
                 className="input input-bordered w-full"
-                {...register("minQty", { required: "Minimum quantity is required", min: 1 })} 
+                {...register("minQty", {
+                  required: "Minimum quantity is required",
+                  min: 1
+                })}
               />
-              {errors.minQty && <span className="text-error text-sm mt-1">{errors.minQty.message}</span>}
+              {errors.minQty && (
+                <span className="text-error text-sm mt-1">
+                  {errors.minQty.message}
+                </span>
+              )}
+            </div>
+
+            {/* ✅ NEW: Stock Field (required for cart logic) */}
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-semibold">
+                  Available Stock
+                </span>
+              </label>
+              <input
+                type="number"
+                className="input input-bordered w-full"
+                {...register("stock", {
+                  required: "Stock quantity is required",
+                  min: 1
+                })}
+              />
+              {errors.stock && (
+                <span className="text-error text-sm mt-1">
+                  {errors.stock.message}
+                </span>
+              )}
             </div>
           </div>
 
-          {/* Row 3: Image URL */}
+          {/* Image */}
           <div className="form-control">
-            <label className="label"><span className="label-text font-semibold">Image URL</span></label>
-            <input 
-              type="url" 
-              placeholder="https://example.com/image.jpg" 
+            <label className="label">
+              <span className="label-text font-semibold">
+                Image URL
+              </span>
+            </label>
+            <input
+              type="url"
               className="input input-bordered w-full"
-              {...register("image", { required: "Image URL is required" })} 
+              {...register("image", {
+                required: "Image URL is required"
+              })}
             />
-            {errors.image && <span className="text-error text-sm mt-1">{errors.image.message}</span>}
+            {errors.image && (
+              <span className="text-error text-sm mt-1">
+                {errors.image.message}
+              </span>
+            )}
           </div>
 
-          {/* Row 4: Description */}
+          {/* Description */}
           <div className="form-control">
-            <label className="label"><span className="label-text font-semibold">Product Description</span></label>
-            <textarea 
-              className="textarea textarea-bordered h-32 w-full" 
-              placeholder="Provide detailed specifications, materials, and wholesale terms..."
-              {...register("description", { required: "Description is required" })}
-            ></textarea>
-            {errors.description && <span className="text-error text-sm mt-1">{errors.description.message}</span>}
+            <label className="label">
+              <span className="label-text font-semibold">
+                Product Description
+              </span>
+            </label>
+            <textarea
+              className="textarea textarea-bordered h-32 w-full"
+              {...register("description", {
+                required: "Description is required"
+              })}
+            />
+            {errors.description && (
+              <span className="text-error text-sm mt-1">
+                {errors.description.message}
+              </span>
+            )}
           </div>
 
-          {/* Read-Only Supplier Info (Hidden from editing, but good for UI trust) */}
+          {/* Supplier Info */}
           <div className="bg-base-200 p-4 rounded-xl flex items-center gap-4 mt-6">
             <div className="avatar">
               <div className="w-12 rounded-full">
-                <img src={user?.photoURL || "https://placehold.co/100"} alt="User" />
+                <img
+                  src={user?.photoURL || "https://placehold.co/100"}
+                  alt="User"
+                />
               </div>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Adding as Supplier:</p>
-              <p className="font-bold">{user?.displayName} ({user?.email})</p>
+              <p className="text-sm text-gray-500">
+                Adding as Supplier:
+              </p>
+              <p className="font-bold">
+                {user?.displayName} ({user?.email})
+              </p>
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary w-full mt-8 text-lg">
+          <button
+            type="submit"
+            className="btn btn-primary w-full mt-8 text-lg"
+          >
             Publish Product
           </button>
         </form>

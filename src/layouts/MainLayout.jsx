@@ -1,5 +1,6 @@
 import { Outlet } from "react-router";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const MainLayout = () => {
   return (
@@ -11,9 +12,7 @@ const MainLayout = () => {
         <Outlet />
       </main>
 
-      <footer className="bg-neutral text-neutral-content p-4 text-center">
-        <p>© {new Date().getFullYear()} B2B Wholesale Platform - All Rights Reserved</p>
-      </footer>
+      <Footer />
     </div>
   );
 };

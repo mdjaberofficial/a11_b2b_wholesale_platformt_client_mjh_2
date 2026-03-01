@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router"; // Import Link
 import useAxiosSecure from "../hooks/useAxiosSecure";
 
 const AllProducts = () => {
@@ -6,12 +7,10 @@ const AllProducts = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Challenge States
   const [isTableView, setIsTableView] = useState(false);
   const [filterAvailable, setFilterAvailable] = useState(false);
 
   useEffect(() => {
-    // Fetch products from your backend
     axiosSecure.get('/api/products')
       .then(res => {
         setProducts(res.data);
@@ -23,7 +22,6 @@ const AllProducts = () => {
       });
   }, [axiosSecure]);
 
-  // Apply the filter logic (Minimum_selling_quantity > 100)
   const displayedProducts = filterAvailable 
     ? products.filter(product => product.Minimum_selling_quantity > 100)
     : products;
@@ -37,7 +35,6 @@ const AllProducts = () => {
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <h1 className="text-3xl font-bold">All Products ({displayedProducts.length})</h1>
         
-        {/* Challenge Controls: Filter & Toggle View */}
         <div className="flex items-center gap-4">
           <button 
             onClick={() => setFilterAvailable(!filterAvailable)}
@@ -58,7 +55,6 @@ const AllProducts = () => {
         </div>
       </div>
 
-      {/* Render Table View */}
       {isTableView ? (
         <div className="overflow-x-auto bg-base-100 shadow-xl rounded-xl border border-base-200">
           <table className="table table-zebra w-full">
@@ -67,7 +63,7 @@ const AllProducts = () => {
                 <th>Image</th>
                 <th>Product Name</th>
                 <th>Category</th>
-                <th>Min. Selling Qty</th>
+                <th>Min. Qty</th>
                 <th>Price</th>
                 <th>Action</th>
               </tr>
@@ -87,20 +83,17 @@ const AllProducts = () => {
                   <td>{product.Minimum_selling_quantity}</td>
                   <td>${product.price}</td>
                   <td>
-                    <button className="btn btn-sm btn-primary">Details</button>
+                    {/* UPDATED: Link to details */}
+                    <Link to={`/product/${product._id}`} className="btn btn-sm btn-primary">
+                      Details
+                    </Link>
                   </td>
                 </tr>
               ))}
-              {displayedProducts.length === 0 && (
-                <tr>
-                  <td colSpan="6" className="text-center py-10 text-gray-500">No products found.</td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
       ) : (
-        /* Render Card View */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {displayedProducts.map(product => (
             <div key={product._id} className="card bg-base-100 shadow-xl border border-base-200">
@@ -115,16 +108,14 @@ const AllProducts = () => {
                 </div>
                 <p className="text-xl font-bold mt-2">${product.price}</p>
                 <div className="card-actions justify-end mt-4">
-                  <button className="btn btn-primary w-full">View Details</button>
+                  {/* UPDATED: Link to details */}
+                  <Link to={`/product/${product._id}`} className="btn btn-primary w-full text-center">
+                    View Details
+                  </Link>
                 </div>
               </div>
             </div>
           ))}
-          {displayedProducts.length === 0 && (
-            <div className="col-span-full text-center py-20 text-gray-500 text-xl">
-              No products found matching your criteria.
-            </div>
-          )}
         </div>
       )}
     </div>
