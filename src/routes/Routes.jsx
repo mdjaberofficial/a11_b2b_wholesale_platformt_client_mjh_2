@@ -1,12 +1,10 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter } from "react-router"; // Just keeping your setup, though react-router is fine too!
 import MainLayout from "../layouts/MainLayout";
 import Home from "../pages/Home";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import PrivateRoute from "./PrivateRoute";
-
-// Dummy component for testing the private route
-const AddProduct = () => <div className="text-center text-3xl mt-10">Add Product Page (Protected)</div>;
+import AddProduct from "../pages/AddProduct"; // <-- 1. Import it here
 
 const router = createBrowserRouter([
   {
@@ -26,12 +24,11 @@ const router = createBrowserRouter([
         path: "register",
         element: <Register />,
       },
-      // Protected Routes
       {
         path: "add-product",
         element: (
           <PrivateRoute>
-            <AddProduct />
+            <AddProduct /> {/* <-- 2. Use it here */}
           </PrivateRoute>
         ),
       },
